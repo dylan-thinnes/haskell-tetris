@@ -1,4 +1,7 @@
 # haskell-tetris
-An attempt at making Tetris in Haskell.
+An attempt at making Tetris in Haskell. 
 
-Mostly for the purposes of encouraging me to learn mtl and lens libraries.
+Reasons for this project:
+- I haven't found any in-terminal implementation of Tetris that has proper
+  wallkicks, sonic drops, and speed settings.
+- Gives me a concrete playground to use more libraries, e.g. mtl, lens
