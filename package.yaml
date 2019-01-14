@@ -1,10 +1,10 @@
-name:                term-dungeon
+name:                haskell-tetris
 version:             0.1.0.0
-github:              "githubuser/term-dungeon"
+github:              "https://github.com/dylan-thinnes/haskell-tetris"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2018 Author name here"
+author:              "Dylan Thinnes"
+maintainer:          "dylan.thinnes@protonmail.com"
+copyright:           "2018 Dylan Thinnes"
 
 extra-source-files:
 - README.md
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/term-dungeon#readme>
+description:         Please see the README on GitHub at <https://github.com/dylan-thinnes/haskell-tetris#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -33,7 +33,7 @@ library:
   source-dirs: src
 
 executables:
-  term-dungeon-exe:
+  haskell-tetris-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -42,10 +42,10 @@ executables:
     - -with-rtsopts=-N
     - -XOverloadedStrings
     dependencies:
-    - term-dungeon
+    - haskell-tetris
 
 tests:
-  term-dungeon-test:
+  haskell-tetris-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -53,4 +53,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - term-dungeon
+    - haskell-tetris
