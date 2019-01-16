@@ -7,6 +7,9 @@ cycleC, cycleCC :: (Eq a, Bounded a, Enum a) => a -> a
 cycleC a = if a == maxBound then minBound else succ a
 cycleCC a = if a == minBound then maxBound else pred a
 
+iterateN :: Int -> (a -> a) -> a -> a
+iterateN n it seed = iterate it seed !! n
+
 doWhile :: (Monad m) => [a] -> (a -> m Bool) -> m Bool
 doWhile []     action = return True
 doWhile (b:bs) action = do
@@ -14,7 +17,3 @@ doWhile (b:bs) action = do
     case result of
       True  -> doWhile bs action
       False -> return False
-
-test = doWhile [1..11] $ \i -> do
-    print i
-    return (i < 10)

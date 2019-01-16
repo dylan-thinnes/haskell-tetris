@@ -47,12 +47,11 @@ createGameFromSettings settings = Game piece board gravityRemaining prevTick cur
     where
     w = view width settings
     h = view height settings
-    piece = Piece (0,0) L Up
+    piece = Piece (0,0) L Rot0
     board = emptyGrid w h
     gravityRemaining = view gravity settings
     prevTick = undefined
     currTick = undefined
-    
 
 logic :: CloseableChannel Delta -> IO ()
 logic chan = do
@@ -81,57 +80,46 @@ type Tick a = RWST Settings (S.Seq String) Game Curses a
 
 tick :: Delta -> Tick ()
 tick d = do
-    clearPiece
     consumeDelta d
-    drawPiece
     lift render
 
 consumeDelta :: Delta -> Tick ()
-consumeDelta RotatePiece = piece.orientation %= cycleC
-consumeDelta ChangePiece = piece.shape %= cycleC
-consumeDelta (MovePiece GoRight) = tryMovePieceRel 1 0 >> return ()
-consumeDelta (MovePiece GoLeft)  = tryMovePieceRel (-1) 0 >> return ()
+consumeDelta RotatePiece         = tryModPiece (Mod 0 0 Rot90        ) >> return ()
+consumeDelta ChangePiece         = redrawPiece (piece.shape %= cycleC) >> return ()
+consumeDelta (MovePiece GoRight) = tryModPiece (Mod 1 0 Rot0         ) >> return ()
+consumeDelta (MovePiece GoLeft)  = tryModPiece (Mod (-1) 0 Rot0      ) >> return ()
 consumeDelta (MovePiece GoDown)  = do
-    tryMovePieceRel 0 1
+    tryModPiece $ Mod 0 1 Rot0
     resetGravity
 consumeDelta (Tick time) = do
     rem <- decrementGravity
     if rem == 0
     then do
-        tryMovePieceRel 0 1
+        tryModPiece (Mod 0 1 Rot0)
         resetGravity
     else return ()
 consumeDelta WarpPiece = do
     h <- view height
-    (_,y) <- gets $ view $ piece.position
-    forM_ [y..h] $ \_ -> tryMovePieceRel 0 1
+    y <- gets $ view $ piece.position._1
+    redrawPiece $ forM_ [y..h] $ const $ tryModPiece (Mod 0 1 Rot0)
 consumeDelta _ = return ()
 
-tryMovePieceRel :: Integer -> Integer -> Tick Bool
-tryMovePieceRel dx dy = do
-    (x,y) <- gets $ view $ piece.position
-    let x' = dx + x
-    let y' = dy + y
-    tryMovePieceAbs x' y'
+redrawPiece :: Tick a -> Tick a
+redrawPiece t = clearPiece >> t <* drawPiece
 
-validCoordinate :: Integer -> Integer -> Tick Bool
-validCoordinate x y = do
+tryModPiece :: Mod -> Tick Bool
+tryModPiece m = do
+    p <- gets $ view piece
+    let p' = applyMod m p
     mx <- view width
     my <- view height
-    return $ between x 0 mx && between y 0 my
-
-tryMovePieceAbs :: Integer -> Integer -> Tick Bool
-tryMovePieceAbs x y = do
-    p <- gets $ view $ piece
-    let maxX = pieceWidth p + x
-    let maxY = pieceHeight p + y
-    minValid <- validCoordinate x y
-    maxValid <- validCoordinate maxX maxY
-    if minValid && maxValid
+    b <- gets $ view board
+    if pieceWithin p' mx my && not (collision (pieceToTilegrid p) b)
     then do
-        piece.position .= (x,y)
+        redrawPiece $ piece .= p'
         return True
-    else return False
+    else do
+        return False
 
 clearPiece :: Tick ()
 clearPiece = do
@@ -148,7 +136,7 @@ drawPiece = do
     lift $ runRender (drawGrid grid) w
 
 decrementGravity :: Tick Int
-decrementGravity = gravityRemaining -= 1 >> gets (view gravityRemaining)
+decrementGravity = gravityRemaining <-= 1
 
 resetGravity :: Tick ()
 resetGravity = view gravity >>= (gravityRemaining .=)

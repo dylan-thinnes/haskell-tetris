@@ -21,7 +21,6 @@ data Settings = Settings
     , _window :: Window
     }
 
-data Direction = GoDown | GoRight | GoLeft
 data Delta = MovePiece Direction
            | WarpPiece
            | LockPiece
